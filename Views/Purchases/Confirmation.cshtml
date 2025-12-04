@@ -1,0 +1,50 @@
+@model VirtualEventTicketingSystem.Models.Purchase
+
+<h2>Confirm Your Purchase</h2>
+
+<p><strong>Name:</strong> @Model.GuestName</p>
+<p><strong>Email:</strong> @Model.GuestEmail</p>
+
+@if (Model.EventPurchases != null && Model.EventPurchases.Any())
+{
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Event</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var ep in Model.EventPurchases)
+        {
+            <tr>
+                <td>@ep.Event?.Title</td>
+                <td>@ep.Event?.TicketPrice.ToString("C")</td>
+                <td>@ep.Quantity</td>
+                <td>@(ep.Event != null ? (ep.Event.TicketPrice * ep.Quantity).ToString("C") : "-")</td>
+            </tr>
+
+            <!-- Hidden form fields for confirm POST -->
+            <input type="hidden" name="eventIds" value="@ep.EventId" />
+            <input type="hidden" name="quantities" value="@ep.Quantity" />
+        }
+        </tbody>
+    </table>
+
+    <h4>Total: @Model.TotalCost.ToString("C")</h4>
+}
+else
+{
+    <p>No events selected.</p>
+}
+
+<form asp-action="Confirm" method="post">
+    <input type="hidden" asp-for="GuestName" />
+    <input type="hidden" asp-for="GuestEmail" />
+    <input type="hidden" asp-for="TotalCost" />
+
+    <button type="submit" class="btn btn-success">Confirm Purchase</button>
+    <a asp-action="Create" class="btn btn-secondary">Go Back</a>
+</form>

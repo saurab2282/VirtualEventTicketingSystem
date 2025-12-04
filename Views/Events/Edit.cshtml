@@ -1,0 +1,50 @@
+@model Event
+@{
+    ViewBag.Title = "Edit Event"; 
+    Layout = "_Layout"; 
+}
+
+<h2>Edit Event</h2>
+
+<form asp-action="Edit" method="post">
+    
+    <div> 
+        <label asp-for="Title" class="control-label"></label> 
+        <input asp-for="Title" class="form-control"> 
+        <span asp-validation-for="Title" class="text-danger"></span> 
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Category</label>
+        <select asp-for="CategoryId" class="form-select" asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name"))"></select>
+    </div>
+    
+    <div> 
+        <label asp-for="DateTime" class="control-label"></label> 
+        <input asp-for="DateTime" class="form-control"> 
+        <span asp-validation-for="DateTime" class="text-danger"></span> 
+    </div> 
+    
+    <div> 
+        <label asp-for="TicketPrice" class="control-label"></label> 
+        <input asp-for="TicketPrice" class="form-control"> 
+        <span asp-validation-for="TicketPrice" class="text-danger"></span> 
+    </div> 
+    
+    <div> 
+        <label asp-for="AvailableTickets" class="control-label"></label> 
+        <input asp-for="AvailableTickets" class="form-control"> 
+        <span asp-validation-for="AvailableTickets" class="text-danger"></span> 
+    </div> 
+    
+    <div class="form-group"> 
+        <input type="submit" value="Save" class="btn btn-primary" /> 
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a> 
+    </div> 
+</form>
+
+@section Scripts { 
+    @{ 
+        await Html.RenderPartialAsync("_ValidationScriptsPartial"); 
+    } 
+}

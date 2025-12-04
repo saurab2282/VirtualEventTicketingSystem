@@ -1,0 +1,14 @@
+@model VirtualEventTicketingSystem.Models.Purchase
+
+@{
+    ViewData["Title"] = "Purchase Confirmed";
+}
+
+<div class="text-center mt-5">
+    <h2 class="text-success">✅ Purchase Successful!</h2>
+    <p>Thank you for your purchase. A confirmation email will be sent to you shortly.</p>
+
+    <a asp-controller="Events" asp-action="Index" class="btn btn-primary mt-3">
+        Back to Events
+    </a>
+</div>

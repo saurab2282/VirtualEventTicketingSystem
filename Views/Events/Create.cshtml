@@ -1,0 +1,40 @@
+@model Event
+@{
+    ViewData["Title"] = "Create Event";
+}
+
+<h2>Add Event</h2>
+
+<form asp-action="Create" method="post">
+    
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input asp-for="Title" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Category</label>
+        <select asp-for="CategoryId" class="form-select" asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name"))"></select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Date and Time</label>
+        <input asp-for="DateTime" type="datetime-local" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Ticket Price</label>
+        <input asp-for="TicketPrice" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Available Tickets</label>
+        <input asp-for="AvailableTickets" class="form-control" />
+    </div>
+    
+    <div class="mb-3">
+        <input type="submit" value="Create" class="btn btn-primary" />
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

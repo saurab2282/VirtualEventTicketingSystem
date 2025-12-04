@@ -1,0 +1,40 @@
+@model Category
+
+@{
+    ViewBag.Title = "Delete Category"; 
+    Layout = "_layout"; 
+}
+
+<h2>@ViewBag.Title</h2> 
+
+<h3>Are you sure you want to delete this category?</h3> 
+
+<div> 
+    <h4>Category</h4> 
+    <hr/> 
+
+    <dl class="row"> 
+        <dt class="col-sm-2"> 
+            @Html.DisplayNameFor(model => model.Name) 
+        </dt> 
+        <dd class="col-sm-10"> 
+            @Html.DisplayFor(model => model.Name) 
+        </dd> 
+        <dt class="col-sm-2"> 
+            @Html.DisplayNameFor(model => model.Description) 
+        </dt> 
+        <dd class="col-sm-10"> 
+            @Html.DisplayFor(model => model.Description) 
+        </dd> 
+        <dd class="col-sm-10"> 
+            @Html.DisplayFor(model => model.Id) 
+        </dd> 
+    </dl> 
+
+    <form asp-action="DeleteConfirmed" asp-route-id="@Model.Id" method="post"> 
+        @Html.AntiForgeryToken() 
+        @Html.HiddenFor(model => model.Id) 
+        <input type="submit" value="Delete" class="btn btn-danger"/> 
+        <a asp-action="Index" class="btn btn-secondary">Back to Categories</a> 
+    </form> 
+</div>

@@ -1,0 +1,75 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<style>
+    body {
+        background-color: lemonchiffon;
+        color: indianred;
+    }
+    
+    footer{
+        padding: 10px 0;
+    }
+    
+    .Border{
+        border: 5px solid white;
+        box-sizing: border-box;
+        height: 90vh;
+        overflow-y: auto;
+        background-color: #f5f5dc;
+        border-radius: 20px;
+    }
+    
+    a{
+        color: indianred;
+    }
+    
+    hr{
+        border: none; 
+        height: 5px; 
+        background-color: white;
+    }
+    
+    .largertext{
+        font-size: 1.4rem;
+    }
+    
+</style>
+    
+    <div class="Border">
+        <div class="text-center mt-4">
+            <h1 class="display-5 fw-bold text-primary mb-3">Welcome to the Virtual Event Ticketing System 🎫</h1>
+            <p class="lead text-center mb-4">Manage and purchase tickets for amazing webinars, concerts, and workshops — all in one place.</p>
+
+            
+            <hr class="my-5"/>
+            <div class="largertext">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card p-3">
+                            <h5 class="text-primary">🎤 Host Events</h5>
+                            <p>Add and manage webinars, concerts, and more with simple tools.</p>
+                            <a class="btn btn-warning btn-lg" asp-controller="Events" asp-action="Index">View Events</a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card p-3">
+                            <h5 class="text-success">🔍 View Purchased Tickets</h5>
+                            <p>View all tickets that have been purchased.</p>
+                            <a class="btn btn-warning btn-lg" asp-controller="Purchases" asp-action="Index">View Purchased Tickets</a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card p-3">
+                            <h5 class="text-danger">💳 Purchase Tickets</h5>
+                            <p>Guests can purchase tickets instantly! — no login required.</p>
+                            <a class="btn btn-outline-primary btn-lg" asp-controller="Purchases" asp-action="Create">Buy Tickets</a>
+                        </div>
+                    </div>
+                </div>
+            </div>    
+        </div>
+    </div>
