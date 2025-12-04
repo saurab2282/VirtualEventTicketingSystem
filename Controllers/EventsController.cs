@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VirtualEventTicketingSystem.Models;
@@ -15,6 +16,7 @@ public class EventsController : Controller
     }
 
     // GET: Events
+    [AllowAnonymous]
     public async Task<IActionResult> Index(string search, int? categoryId, string sortOrder)
     {
         var events = _context.Events.Include(e => e.Category).AsQueryable();
@@ -50,6 +52,8 @@ public class EventsController : Controller
     }
 
     // GET: Events/Create
+    
+    [Authorize(Policy = "OrganizerOrAdmin")]
     public IActionResult Create()
     {
         ViewBag.Categories = _context.Categories.ToList();
@@ -58,6 +62,8 @@ public class EventsController : Controller
 
     // POST: Events/Create
     [HttpPost]
+    
+    [Authorize(Policy = "OrganizerOrAdmin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Event e)
     {
@@ -72,6 +78,8 @@ public class EventsController : Controller
 
     // GET: Events/Edit/5
     [HttpGet]
+    
+    [Authorize(Policy = "OrganizerOrAdmin")]
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
@@ -85,6 +93,8 @@ public class EventsController : Controller
 
     // POST: Events/Edit/5
     [HttpPost]
+    
+    [Authorize(Policy = "OrganizerOrAdmin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, Event e)
     {
@@ -100,6 +110,8 @@ public class EventsController : Controller
     }
 
     // GET: Events/Delete/5
+    
+    [Authorize(Policy = "OrganizerOrAdmin")]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null) return NotFound();
@@ -114,6 +126,8 @@ public class EventsController : Controller
 
     // POST: Events/Delete/5
     [HttpPost, ActionName("Delete")]
+    
+    [Authorize(Policy = "OrganizerOrAdmin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {

@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -14,32 +18,66 @@
         <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
             🎫 Virtual Ticketing
         </a>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+
+                <!-- Always visible -->
                 <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
                 <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="Index">Events</a></li>
-                <li class="nav-item"><a class="nav-link" asp-controller="Categories" asp-action="Index">Categories</a></li>
-                @if (User.Identity.IsAuthenticated)
-                {
-                    <li class="nav-item"><a class="nav-link" asp-controller="Purchases" asp-action="Index">Purchases</a></li>
-                }
-                @using Microsoft.AspNetCore.Identity
-                @inject SignInManager<AppUser> SignInManager
-                @inject UserManager<AppUser> UserManager
 
+                <!-- Only authenticated users can see purchases -->
+                @if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    <li class="nav-item"><a class="nav-link" asp-controller="Purchases" asp-action="Index">My Purchases</a></li>
+                }
+
+                <!-- Organizer Menu -->
+                @if (User.IsInRole("Organizer"))
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="organizerDropdown" role="button" data-bs-toggle="dropdown">
+                            Organizer
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="organizerDropdown">
+                            <li><a class="dropdown-item" asp-controller="Events" asp-action="MyEvents">My Events</a></li>
+                            <li><a class="dropdown-item" asp-controller="Events" asp-action="Create">Create Event</a></li>
+                        </ul>
+                    </li>
+                }
+
+                <!-- Admin Menu -->
+                @if (User.IsInRole("Admin"))
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                            Admin Panel
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Index">Dashboard</a></li>
+                            <li><a class="dropdown-item" asp-controller="Users" asp-action="Index">User Management</a></li>
+                            <li><a class="dropdown-item" asp-controller="Categories" asp-action="Index">Categories</a></li>
+                            <li><a class="dropdown-item" asp-controller="Events" asp-action="Index">All Events</a></li>
+                        </ul>
+                    </li>
+                }
+
+                <!-- Authentication -->
                 @if (SignInManager.IsSignedIn(User))
                 {
+                    <!-- Logged-in dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             Hello, @User.Identity.Name
                         </a>
+
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li>
-                                <form method="post" asp-area="Identity" asp-page="/Account/Logout" id="logoutForm">
+                                <form method="post" asp-area="Identity" asp-page="/Account/Logout">
                                     <button type="submit" class="dropdown-item">Logout</button>
                                 </form>
                             </li>
@@ -48,6 +86,7 @@
                 }
                 else
                 {
+                    <!-- Logged-out links -->
                     <li class="nav-item">
                         <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
                     </li>
@@ -55,6 +94,7 @@
                         <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
                     </li>
                 }
+
             </ul>
         </div>
     </div>
@@ -68,7 +108,8 @@
 
 <footer class="footer bg-dark text-white text-center py-3 mt-auto">
     <small>
-        © 2025 Virtual Event Ticketing System — Built by <b>Vincenzo Iori, Saurad Khatri, and Aanod Mohamed</b>
+        © 2025 Virtual Event Ticketing System — Built by 
+        <b>Vincenzo Iori, Saurad Khatri, and Aanod Mohamed</b>
     </small>
 </footer>
 

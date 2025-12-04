@@ -416,3 +416,4 @@
 /Users/saurabk/Desktop/COMP2139/VirtualEventTicketingSystem/VirtualEventTicketingSystem/obj/Debug/net9.0/VirtualEventTicketingSystem.pdb
 /Users/saurabk/Desktop/COMP2139/VirtualEventTicketingSystem/VirtualEventTicketingSystem/obj/Debug/net9.0/VirtualEventTicketingSystem.genruntimeconfig.cache
 /Users/saurabk/Desktop/COMP2139/VirtualEventTicketingSystem/VirtualEventTicketingSystem/obj/Debug/net9.0/ref/VirtualEventTicketingSystem.dll
+/Users/saurabk/Desktop/COMP2139/VirtualEventTicketingSystem/VirtualEventTicketingSystem/obj/Debug/net9.0/VirtualEventTicketingSystem.sourcelink.json
