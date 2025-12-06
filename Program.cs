@@ -47,21 +47,79 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 6. ⭐ NOW seed database — AFTER middleware is ready!
+// 6. Inline role/user seeding
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var seeder = scope.ServiceProvider.GetRequiredService<RoleSeeder>();
+    var services = scope.ServiceProvider;
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var db = services.GetRequiredService<ApplicationDbContext>();
 
-    await seeder.SeedRolesUsersAndEventsAsync(db);
+    // Roles
+    string[] roles = new[] { "Admin", "Organizer", "User" };
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+
+    // Admin user
+    var adminEmail = "admin@example.com";
+    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    {
+        var adminUser = new AppUser
+        {
+            UserName = "admin",
+            Email = adminEmail,
+            FullName = "System Admin",
+            IsOrganizer = true,
+            EmailConfirmed = true
+        };
+        await userManager.CreateAsync(adminUser, "Admin123!");
+        await userManager.AddToRoleAsync(adminUser, "Admin");
+    }
+
+    // Organizer user
+    var organizerEmail = "organizer@example.com";
+    if (await userManager.FindByEmailAsync(organizerEmail) == null)
+    {
+        var organizerUser = new AppUser
+        {
+            UserName = "organizer",
+            Email = organizerEmail,
+            FullName = "Event Organizer",
+            IsOrganizer = true,
+            EmailConfirmed = true
+        };
+        await userManager.CreateAsync(organizerUser, "Organizer123!");
+        await userManager.AddToRoleAsync(organizerUser, "Organizer");
+    }
+
+    // Regular user
+    var userEmail = "user@example.com";
+    if (await userManager.FindByEmailAsync(userEmail) == null)
+    {
+        var normalUser = new AppUser
+        {
+            UserName = "user",
+            Email = userEmail,
+            FullName = "Demo User",
+            IsOrganizer = false,
+            EmailConfirmed = true
+        };
+        await userManager.CreateAsync(normalUser, "User123!");
+        await userManager.AddToRoleAsync(normalUser, "User");
+    }
+
+    await db.SaveChangesAsync();
 }
 
-// 7. Endpoints
+// 7. Routes
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
 app.MapRazorPages();
-
 
 app.Run();

@@ -25,20 +25,18 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-
                 <!-- Always visible -->
                 <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
                 <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="Index">Events</a></li>
 
-                <!-- Only authenticated users can see purchases -->
-                @if (User.Identity?.IsAuthenticated ?? false)
+                @* Links for all authenticated users *@
+                @if (SignInManager.IsSignedIn(User))
                 {
-                    <li class="nav-item"><a class="nav-link" asp-controller="Purchases" asp-action="Index">My Purchases</a></li>
                     <li class="nav-item"><a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
-                
+                    <li class="nav-item"><a class="nav-link" asp-controller="Purchases" asp-action="Index">My Purchases</a></li>
                 }
 
-                <!-- Organizer Menu -->
+                @* Organizer dropdown menu *@
                 @if (User.IsInRole("Organizer"))
                 {
                     <li class="nav-item dropdown">
@@ -48,11 +46,12 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="organizerDropdown">
                             <li><a class="dropdown-item" asp-controller="Events" asp-action="MyEvents">My Events</a></li>
                             <li><a class="dropdown-item" asp-controller="Events" asp-action="Create">Create Event</a></li>
+                            <li><a class="dropdown-item" asp-controller="Analytics" asp-action="MyAnalytics">Analytics Dashboard</a></li>
                         </ul>
                     </li>
                 }
 
-                <!-- Admin Menu -->
+                @* Admin dropdown menu *@
                 @if (User.IsInRole("Admin"))
                 {
                     <li class="nav-item dropdown">
@@ -64,19 +63,19 @@
                             <li><a class="dropdown-item" asp-controller="Users" asp-action="Index">User Management</a></li>
                             <li><a class="dropdown-item" asp-controller="Categories" asp-action="Index">Categories</a></li>
                             <li><a class="dropdown-item" asp-controller="Events" asp-action="Index">All Events</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><a class="dropdown-item" asp-controller="Analytics" asp-action="MyAnalytics">Analytics Dashboard</a></li>
                         </ul>
                     </li>
                 }
 
-                <!-- Authentication -->
+                @* Authentication links *@
                 @if (SignInManager.IsSignedIn(User))
                 {
-                    <!-- Logged-in dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             Hello, @User.Identity.Name
                         </a>
-
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li>
                                 <form method="post" asp-area="Identity" asp-page="/Account/Logout">
@@ -88,15 +87,9 @@
                 }
                 else
                 {
-                    <!-- Logged-out links -->
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a></li>
                 }
-
             </ul>
         </div>
     </div>

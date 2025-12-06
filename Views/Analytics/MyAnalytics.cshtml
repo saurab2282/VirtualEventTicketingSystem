@@ -1,0 +1,80 @@
+@{
+    ViewData["Title"] = "Organizer Analytics Dashboard";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <canvas id="ticketsByCategoryChart"></canvas>
+    </div>
+    <div class="col-md-6">
+        <canvas id="revenuePerMonthChart"></canvas>
+    </div>
+</div>
+
+<hr/>
+
+<h3>Top 5 Best-Selling Events</h3>
+<table class="table table-striped" id="topEventsTable">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Tickets Sold</th>
+            <th>Revenue</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+async function loadAnalytics() {
+    // 1️⃣ Tickets by Category
+    const catRes = await fetch('@Url.Action("GetTicketSalesByCategory")');
+    const catData = await catRes.json();
+    new Chart(document.getElementById('ticketsByCategoryChart'), {
+        type: 'bar',
+        data: {
+            labels: catData.map(c => c.category),
+            datasets: [{
+                label: 'Tickets Sold',
+                data: catData.map(c => c.ticketsSold),
+                backgroundColor: 'rgba(54, 162, 235, 0.6)'
+            }]
+        },
+        options: { responsive: true }
+    });
+
+    // 2️⃣ Revenue per Month
+    const revRes = await fetch('@Url.Action("GetRevenuePerMonth")');
+    const revData = await revRes.json();
+    new Chart(document.getElementById('revenuePerMonthChart'), {
+        type: 'line',
+        data: {
+            labels: revData.map(r => `${r.year}-${r.month}`),
+            datasets: [{
+                label: 'Revenue',
+                data: revData.map(r => r.revenue),
+                backgroundColor: 'rgba(75, 192, 192, 0.3)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: { responsive: true }
+    });
+
+    // 3️⃣ Top 5 Best-Selling Events
+    const topRes = await fetch('@Url.Action("GetTopEvents")');
+    const topData = await topRes.json();
+    const tbody = document.querySelector('#topEventsTable tbody');
+    topData.forEach(e => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${e.title}</td><td>${e.ticketsSold}</td><td>$${e.revenue.toFixed(2)}</td>`;
+        tbody.appendChild(row);
+    });
+}
+
+loadAnalytics();
+</script>
