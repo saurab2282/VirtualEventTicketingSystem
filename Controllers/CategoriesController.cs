@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VirtualEventTicketingSystem.Models;
@@ -21,6 +22,7 @@ public class CategoriesController : Controller
     }
 
     // GET: Categories/Create
+    [Authorize(Policy = "OrganizerOrAdmin")]
     public IActionResult Create() => View();
 
     // POST: Categories/Create
@@ -38,6 +40,7 @@ public class CategoriesController : Controller
     }
 
     // GET: Categories/Delete/5
+    [Authorize(Policy = "OrganizerOrAdmin")]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null) return NotFound();
@@ -48,6 +51,7 @@ public class CategoriesController : Controller
 
     // POST: Categories/Delete
     [HttpPost, ActionName("Delete")]
+    [Authorize(Policy = "OrganizerOrAdmin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {

@@ -1,35 +1,54 @@
 using Microsoft.AspNetCore.Identity.UI.Services;
-using System.Net.Mail;
+using Microsoft.Extensions.Options;
 using System.Net;
+using System.Net.Mail;
 
 namespace VirtualEventTicketingSystem.Services
 {
     public class EmailSender : IEmailSender
     {
-        private readonly IConfiguration _config;
+        private readonly SmtpSettings _smtpSettings;
 
-        public EmailSender(IConfiguration config)
+        public EmailSender(IOptions<SmtpSettings> smtpSettings)
         {
-            _config = config;
+            _smtpSettings = smtpSettings.Value;
         }
 
-        public Task SendEmailAsync(string email, string subject, string htmlMessage)
+        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            var smtp = _config.GetSection("Smtp");
-
-            var client = new SmtpClient(smtp["Host"])
+            var client = new SmtpClient(_smtpSettings.Host)
             {
-                Port = int.Parse(smtp["Port"]!),
-                Credentials = new NetworkCredential(smtp["saurab.sima@gmail.com"], smtp["jlzi lubt fdtl xeom"]),
-                EnableSsl = bool.Parse(smtp["EnableSsl"]!)
+                Port = _smtpSettings.Port,
+                EnableSsl = true,                   
+                UseDefaultCredentials = false,      
+                Credentials = new NetworkCredential(
+                    _smtpSettings.Username,
+                    _smtpSettings.Password
+                ),
+                DeliveryMethod = SmtpDeliveryMethod.Network  // <-- REQUIRED
             };
 
-            var mail = new MailMessage(from: smtp["User"], to: email, subject, htmlMessage)
+            var mailMessage = new MailMessage
             {
+                From = new MailAddress(_smtpSettings.SenderEmail, _smtpSettings.SenderName),
+                Subject = subject,
+                Body = htmlMessage,
                 IsBodyHtml = true
             };
 
-            return client.SendMailAsync(mail);
+            mailMessage.To.Add(email);
+
+            await client.SendMailAsync(mailMessage);
         }
+    }
+
+    public class SmtpSettings
+    {
+        public string Host { get; set; }
+        public int Port { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string SenderEmail { get; set; }
+        public string SenderName { get; set; }
     }
 }

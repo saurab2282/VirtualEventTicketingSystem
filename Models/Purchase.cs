@@ -23,5 +23,8 @@ namespace VirtualEventTicketingSystem.Models
 
         // List of events purchased
         public List<EventPurchase> EventPurchases { get; set; } = new List<EventPurchase>();
+        public int Rating { get; set; } = 0; // default 0
+        public decimal? Amount
+        { get; set; }
     }
 }

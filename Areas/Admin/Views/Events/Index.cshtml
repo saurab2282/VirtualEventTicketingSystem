@@ -1,0 +1,29 @@
+@model IEnumerable<VirtualEventTicketingSystem.Models.Event>
+
+<h2>All Events</h2>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Event</th>
+        <th>Date</th>
+        <th>Organizer</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var e in Model)
+    {
+        <tr>
+            <td>@e.Title</td>
+            <td>@e.EventDate</td>
+            <td>@e.OrganizerId</td>
+            <td>
+                <a href="/Admin/Events/Edit/@e.Id">Edit</a>
+                |
+                <a href="/Admin/Events/Delete/@e.Id">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "meWz9Vwv92o=",
+  "dgSpecHash": "COh8bhmy6Ik=",
   "success": true,
   "projectFilePath": "/Users/saurabk/Desktop/COMP2139/VirtualEventTicketingSystem/VirtualEventTicketingSystem/VirtualEventTicketingSystem.csproj",
   "expectedPackageFiles": [
@@ -126,6 +126,7 @@
     "/Users/saurabk/.nuget/packages/microsoft.visualstudio.web.codegeneration.utils/9.0.0/microsoft.visualstudio.web.codegeneration.utils.9.0.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/microsoft.visualstudio.web.codegenerators.mvc/9.0.0/microsoft.visualstudio.web.codegenerators.mvc.9.0.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/microsoft.win32.primitives/4.3.0/microsoft.win32.primitives.4.3.0.nupkg.sha512",
+    "/Users/saurabk/.nuget/packages/microsoft.win32.systemevents/10.0.0/microsoft.win32.systemevents.10.0.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/mimekit/4.14.0/mimekit.4.14.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/mono.texttemplating/3.0.0/mono.texttemplating.3.0.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/netstandard.library/1.6.1/netstandard.library.1.6.1.nupkg.sha512",
@@ -144,6 +145,7 @@
     "/Users/saurabk/.nuget/packages/nuget.versioning/6.11.0/nuget.versioning.6.11.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/polly/8.6.4/polly.8.6.4.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/polly.core/8.6.4/polly.core.8.6.4.nupkg.sha512",
+    "/Users/saurabk/.nuget/packages/qrcoder/1.7.0/qrcoder.1.7.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/runtime.debian.8-x64.runtime.native.system.security.cryptography.openssl/4.3.0/runtime.debian.8-x64.runtime.native.system.security.cryptography.openssl.4.3.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/runtime.fedora.23-x64.runtime.native.system.security.cryptography.openssl/4.3.0/runtime.fedora.23-x64.runtime.native.system.security.cryptography.openssl.4.3.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/runtime.fedora.24-x64.runtime.native.system.security.cryptography.openssl/4.3.0/runtime.fedora.24-x64.runtime.native.system.security.cryptography.openssl.4.3.0.nupkg.sha512",
@@ -181,6 +183,7 @@
     "/Users/saurabk/.nuget/packages/system.diagnostics.eventlog/8.0.0/system.diagnostics.eventlog.8.0.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/system.diagnostics.tools/4.3.0/system.diagnostics.tools.4.3.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/system.diagnostics.tracing/4.3.0/system.diagnostics.tracing.4.3.0.nupkg.sha512",
+    "/Users/saurabk/.nuget/packages/system.drawing.common/10.0.0/system.drawing.common.10.0.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/system.formats.asn1/9.0.11/system.formats.asn1.9.0.11.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/system.globalization/4.3.0/system.globalization.4.3.0.nupkg.sha512",
     "/Users/saurabk/.nuget/packages/system.globalization.calendars/4.3.0/system.globalization.calendars.4.3.0.nupkg.sha512",

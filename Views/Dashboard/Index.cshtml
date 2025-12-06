@@ -1,0 +1,79 @@
+@model VirtualEventTicketingSystem.Models.DashboardViewModel
+
+<h1>Welcome, @Model.Profile.FullName</h1>
+
+<hr/>
+x
+<h2>1. My Tickets</h2>
+@if (Model.MyTickets.Any())
+{
+    foreach (var ticket in Model.MyTickets)
+    {
+        <div>
+            <strong>@ticket.Event.Title</strong>
+            <p>Date: @ticket.Event.EventDate.ToShortDateString()</p>
+            <img src="@Url.Action("GenerateQr", "Dashboard", new { code = ticket.EventId })" alt="QR Code" width="150" />
+            <a asp-action="DownloadPdf" asp-route-eventPurchaseId="@ticket.EventId">Download PDF</a>
+        </div>
+    }
+}
+else
+{
+    <p>You have no upcoming tickets.</p>
+}
+
+<hr/>
+
+<h2>2. Purchase History</h2>
+@if (Model.PurchaseHistory.Any())
+{
+    foreach (var purchase in Model.PurchaseHistory)
+    {
+        <div>
+            <strong>@purchase.EventPurchases.First().Event.Title</strong>
+            <p>Rating: @purchase.Rating / 5</p>
+        </div>
+    }
+}
+else
+{
+    <p>No purchase history yet.</p>
+}
+
+<hr/>
+
+<h2>3. My Events (Organizers only)</h2>
+@if (Model.MyEvents.Any())
+{
+    foreach (var evt in Model.MyEvents)
+    {
+        <div>
+            <strong>@evt.Title</strong>
+            <p>Total Revenue: @evt.TotalRevenue</p>
+        </div>
+    }
+}
+else
+{
+    <p>You are not an organizer or have no events yet.</p>
+}
+
+<hr/>
+
+<h2>4. Profile</h2>
+<form asp-action="UpdateProfile" enctype="multipart/form-data" method="post">
+    <label>Full Name:</label>
+    <input type="text" name="FullName" value="@Model.Profile.FullName" />
+
+    <label>Phone Number:</label>
+    <input type="text" name="PhoneNumber" value="@Model.Profile.PhoneNumber" />
+
+    <label>Profile Picture:</label>
+    <input type="file" name="ProfilePicture" />
+    @if (!string.IsNullOrEmpty(Model.Profile.ProfilePictureUrl))
+    {
+        <img src="@Model.Profile.ProfilePictureUrl" alt="Profile Picture" width="100" />
+    }
+
+    <button type="submit">Update Profile</button>
+</form>

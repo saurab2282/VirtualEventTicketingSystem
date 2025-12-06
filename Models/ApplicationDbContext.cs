@@ -1,55 +1,73 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
+using System.Linq;
 
-namespace VirtualEventTicketingSystem.Models;
-
-public class ApplicationDbContext : IdentityDbContext<AppUser>
+namespace VirtualEventTicketingSystem.Models
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options) { }
-
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<Event> Events { get; set; }
-    public DbSet<Purchase> Purchases { get; set; }
-    public DbSet<EventPurchase> EventPurchases { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public class ApplicationDbContext : IdentityDbContext<AppUser>
     {
-        base.OnModelCreating(modelBuilder); // important for Identity
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options) { }
 
-        modelBuilder.Entity<EventPurchase>()
-            .HasKey(ep => new { ep.EventId, ep.PurchaseId });
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Event> Events { get; set; }
+        public DbSet<Purchase> Purchases { get; set; }
+        public DbSet<EventPurchase> EventPurchases { get; set; }
+        public DbSet<Ticket> Tickets { get; set; }
 
-        modelBuilder.Entity<Category>()
-            .HasMany(c => c.Events)
-            .WithOne(e => e.Category)
-            .HasForeignKey(e => e.CategoryId);
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder); // Important for Identity
 
-        // seed categories (static)
-        modelBuilder.Entity<Category>().HasData(
-            new Category { Id = 1, Name = "Webinar", Description = "Online educational sessions" },
-            new Category { Id = 2, Name = "Concert", Description = "Live musical performances" },
-            new Category { Id = 3, Name = "Workshop", Description = "Interactive training sessions" },
-            new Category { Id = 4, Name = "Conference", Description = "Professional Meetings" }
-        );
+            // --------------------------
+            // Global DateTime UTC converter
+            // --------------------------
+            var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+                    v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(), // store as UTC
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Utc) // read as UTC
+                );
+            
 
-        // seed events (static dates)
-        modelBuilder.Entity<Event>().HasData(
-            new Event {
-                Id = 1, Title = "C# Fundamentals", CategoryId = 1,
-                DateTime = new DateTime(2025, 02, 15, 10, 0, 0),
-                TicketPrice = 15.99M, AvailableTickets = 10
-            },
-            new Event {
-                Id = 2, Title = "Rock Night Live", CategoryId = 2,
-                DateTime = new DateTime(2025, 02, 20, 19, 0, 0),
-                TicketPrice = 30.00M, AvailableTickets = 3
-            },
-            new Event {
-                Id = 3, Title = "UI/UX Workshop", CategoryId = 3,
-                DateTime = new DateTime(2025, 02, 25, 14, 0, 0),
-                TicketPrice = 25.50M, AvailableTickets = 8
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                var dateTimeProps = entityType.ClrType.GetProperties()
+                    .Where(p => p.PropertyType == typeof(DateTime));
+
+                foreach (var prop in dateTimeProps)
+                {
+                    modelBuilder.Entity(entityType.ClrType)
+                        .Property(prop.Name)
+                        .HasConversion(dateTimeConverter);
+                }
             }
-        );
+
+            // --------------------------
+            // EventPurchase composite key
+            // --------------------------
+            modelBuilder.Entity<EventPurchase>()
+                .HasKey(ep => new { ep.EventId, ep.PurchaseId });
+
+            // --------------------------
+            // Category → Events relationship
+            // --------------------------
+            modelBuilder.Entity<Category>()
+                .HasMany(c => c.Events)
+                .WithOne(e => e.Category)
+                .HasForeignKey(e => e.CategoryId);
+
+            // --------------------------
+            // Seed categories
+            // --------------------------
+            modelBuilder.Entity<Category>().HasData(
+                new Category { Id = 1, Name = "Webinar", Description = "Online educational sessions" },
+                new Category { Id = 2, Name = "Concert", Description = "Live musical performances" },
+                new Category { Id = 3, Name = "Workshop", Description = "Interactive training sessions" },
+                new Category { Id = 4, Name = "Conference", Description = "Professional Meetings" }
+            );
+
+            // Do NOT seed events here — we'll seed them at runtime
+        }
     }
 }

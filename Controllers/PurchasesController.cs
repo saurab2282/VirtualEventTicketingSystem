@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +6,7 @@ using VirtualEventTicketingSystem.Models;
 
 namespace VirtualEventTicketingSystem.Controllers;
 
-[Authorize]
+
 public class PurchasesController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -26,6 +25,7 @@ public class PurchasesController : Controller
         return View();
     }
 
+    // POST: Purchases/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Purchase purchase, int[] eventIds, int[] quantities)
@@ -45,22 +45,22 @@ public class PurchasesController : Controller
             var ev = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventIds[i]);
             if (ev == null) continue;
 
-            var quantity = quantities[i];
-            if (quantity <= 0) continue;
+            var qty = quantities[i];
+            if (qty <= 0) continue;
 
-            totalCost += ev.TicketPrice * quantity;
+            totalCost += ev.TicketPrice * qty;
 
             purchase.EventPurchases.Add(new EventPurchase
             {
                 EventId = ev.Id,
                 Event = ev,
-                Quantity = quantity
+                Quantity = qty
             });
         }
 
         purchase.TotalCost = totalCost;
 
-        // Ensure all event details are loaded
+        // Load events explicitly
         foreach (var ep in purchase.EventPurchases)
         {
             ep.Event = await _context.Events.FirstOrDefaultAsync(e => e.Id == ep.EventId);
@@ -74,13 +74,19 @@ public class PurchasesController : Controller
     {
         var user = await _userManager.GetUserAsync(User);
 
-        var purchases = await _context.Purchases
-            .Where(p => p.UserId == user.Id)
+        // Admin sees all purchases, regular users see their own
+        var purchasesQuery = _context.Purchases
             .Include(p => p.EventPurchases)
             .ThenInclude(ep => ep.Event)
             .OrderByDescending(p => p.PurchaseDate)
-            .ToListAsync();
+            .AsQueryable();
 
+        if (!User.IsInRole("Admin"))
+        {
+            purchasesQuery = purchasesQuery.Where(p => p.UserId == user.Id);
+        }
+
+        var purchases = await purchasesQuery.ToListAsync();
         return View(purchases);
     }
 
@@ -97,7 +103,7 @@ public class PurchasesController : Controller
 
         var user = await _userManager.GetUserAsync(User);
 
-        // Create a new purchase record linked to logged-in user
+        // New purchase linked to logged-in user
         var newPurchase = new Purchase
         {
             UserId = user.Id,
@@ -140,7 +146,7 @@ public class PurchasesController : Controller
             _context.Events.Attach(ev);
             _context.Entry(ev).Property(e => e.AvailableTickets).IsModified = true;
 
-            // Add the EventPurchase
+            // Add EventPurchase
             _context.EventPurchases.Add(new EventPurchase
             {
                 PurchaseId = newPurchase.PurchaseId,
@@ -172,6 +178,11 @@ public class PurchasesController : Controller
 
         if (purchase == null) return NotFound();
 
+        // Only Admin or the user who made the purchase can delete
+        var user = await _userManager.GetUserAsync(User);
+        if (!User.IsInRole("Admin") && purchase.UserId != user.Id)
+            return Forbid();
+
         return View(purchase);
     }
 
@@ -187,6 +198,10 @@ public class PurchasesController : Controller
 
         if (purchase == null) return NotFound();
 
+        var user = await _userManager.GetUserAsync(User);
+        if (!User.IsInRole("Admin") && purchase.UserId != user.Id)
+            return Forbid();
+
         // Restore tickets
         foreach (var ep in purchase.EventPurchases)
         {
@@ -197,10 +212,7 @@ public class PurchasesController : Controller
             }
         }
 
-        // Remove related EventPurchases
         _context.EventPurchases.RemoveRange(purchase.EventPurchases);
-
-        // Remove purchase
         _context.Purchases.Remove(purchase);
 
         await _context.SaveChangesAsync();

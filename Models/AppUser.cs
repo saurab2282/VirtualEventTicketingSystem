@@ -5,5 +5,8 @@ namespace VirtualEventTicketingSystem.Models;
 public class AppUser : IdentityUser
 {
     public string? FullName { get; set; }
-    public string? ProfilePicture { get; set; } // store filename path in wwwroot/uploads
+    public DateTime DateOfBirth { get; set; } = DateTime.UtcNow;
+    public string? ProfilePictureUrl { get; set; } // store filename path in wwwroot/uploads
+   
+    public bool IsOrganizer { get; set; }
 }

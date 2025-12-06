@@ -40,7 +40,7 @@ public class EventsController : Controller
                 events = events.OrderBy(e => e.Title);
                 break;
             case "date":
-                events = events.OrderBy(e => e.DateTime);
+                events = events.OrderBy(e => e.EventDate);
                 break;
             case "price":
                 events = events.OrderBy(e => e.TicketPrice);

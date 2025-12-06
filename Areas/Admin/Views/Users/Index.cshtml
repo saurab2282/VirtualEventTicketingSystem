@@ -1,0 +1,23 @@
+@model IEnumerable<VirtualEventTicketingSystem.Models.AppUser>
+
+<h2>Users</h2>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Email</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var u in Model)
+    {
+        <tr>
+            <td>@u.Email</td>
+            <td>
+                <a href="/Admin/Users/ManageRoles/@u.Id">Manage Roles</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
