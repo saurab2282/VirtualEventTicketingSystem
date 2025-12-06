@@ -28,7 +28,11 @@
                 <!-- Always visible -->
                 <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
                 <li class="nav-item"><a class="nav-link" asp-controller="Events" asp-action="Index">Events</a></li>
-
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Cart" asp-action="Index">
+                        Cart <span id="cartCount" class="badge bg-danger">@ViewBag.CartCount</span>
+                    </a>
+                </li>
                 @* Links for all authenticated users *@
                 @if (SignInManager.IsSignedIn(User))
                 {

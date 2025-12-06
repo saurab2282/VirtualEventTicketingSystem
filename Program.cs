@@ -4,9 +4,10 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 using VirtualEventTicketingSystem.Models;
-using VirtualEventTicketingSystem.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine($"ENVIRONMENT = {builder.Environment.EnvironmentName}");
 
 // 1. Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -33,6 +34,17 @@ builder.Services.AddAuthorization(options =>
 
 // 4. Add Seeder
 builder.Services.AddScoped<RoleSeeder>();
+// ❗ REQUIRED: Add memory cache FIRST
+builder.Services.AddDistributedMemoryCache();
+
+// ❗ REQUIRED: Add session BEFORE app.Build()
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -42,6 +54,34 @@ var app = builder.Build();
 // 5. MIDDLEWARE (Authentication + Authorization)
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+}
+// GLOBAL ERROR HANDLING
+app.UseExceptionHandler("/Home/Error");
+app.UseStatusCodePages(async context =>
+{
+    var code = context.HttpContext.Response.StatusCode;
+
+    switch (code)
+    {
+        case 404:
+            context.HttpContext.Response.Redirect("/Home/Error404");
+            break;
+
+        case 500:
+            context.HttpContext.Response.Redirect("/Home/Error500");
+            break;
+    }
+
+    await Task.CompletedTask;
+});
+
 app.UseRouting();
 
 app.UseAuthentication();
@@ -57,6 +97,7 @@ using (var scope = app.Services.CreateScope())
 
     // Roles
     string[] roles = new[] { "Admin", "Organizer", "User" };
+
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
@@ -65,36 +106,46 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // Admin user
-    var adminEmail = "admin@example.com";
-    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    // 2. Create Admin user if not exists
+    string adminEmail = "admin@example.com";
+    string adminPassword = "Admin123!"; // Change for production
+
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
     {
-        var adminUser = new AppUser
+        adminUser = new AppUser
         {
-            UserName = "admin",
+            UserName = adminEmail,
             Email = adminEmail,
-            FullName = "System Admin",
-            IsOrganizer = true,
-            EmailConfirmed = true
+            FullName = "Administrator"
         };
-        await userManager.CreateAsync(adminUser, "Admin123!");
-        await userManager.AddToRoleAsync(adminUser, "Admin");
+
+        var result = await userManager.CreateAsync(adminUser, adminPassword);
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "Admin");
+        }
     }
 
-    // Organizer user
-    var organizerEmail = "organizer@example.com";
-    if (await userManager.FindByEmailAsync(organizerEmail) == null)
+    // 3. Optional: Create Organizer user
+    string organizerEmail = "organizer@example.com";
+    string organizerPassword = "Organizer123!";
+
+    var organizerUser = await userManager.FindByEmailAsync(organizerEmail);
+    if (organizerUser == null)
     {
-        var organizerUser = new AppUser
+        organizerUser = new AppUser
         {
-            UserName = "organizer",
+            UserName = organizerEmail,
             Email = organizerEmail,
-            FullName = "Event Organizer",
-            IsOrganizer = true,
-            EmailConfirmed = true
+            FullName = "Organizer User"
         };
-        await userManager.CreateAsync(organizerUser, "Organizer123!");
-        await userManager.AddToRoleAsync(organizerUser, "Organizer");
+
+        var result = await userManager.CreateAsync(organizerUser, organizerPassword);
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(organizerUser, "Organizer");
+        }
     }
 
     // Regular user
@@ -106,7 +157,6 @@ using (var scope = app.Services.CreateScope())
             UserName = "user",
             Email = userEmail,
             FullName = "Demo User",
-            IsOrganizer = false,
             EmailConfirmed = true
         };
         await userManager.CreateAsync(normalUser, "User123!");
@@ -123,3 +173,16 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+// Seed Roles Method
+async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
+{
+    string[] roleNames = { "Organizer", "User" };
+
+    foreach (var roleName in roleNames)
+    {
+        if (!await roleManager.RoleExistsAsync(roleName))
+        {
+            await roleManager.CreateAsync(new IdentityRole(roleName));
+        }
+    }
+}

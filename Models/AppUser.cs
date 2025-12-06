@@ -8,5 +8,5 @@ public class AppUser : IdentityUser
     public DateTime DateOfBirth { get; set; } = DateTime.UtcNow;
     public string? ProfilePictureUrl { get; set; } // store filename path in wwwroot/uploads
    
-    public bool IsOrganizer { get; set; }
+   
 }

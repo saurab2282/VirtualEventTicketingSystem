@@ -1,4 +1,4 @@
-@model VirtualEventTicketingSystem.Models.DashboardViewModel
+@model VirtualEventTicketingSystem.ViewModels.DashboardViewModel;
 
 <h1>Welcome, @Model.Profile.FullName</h1>
 
@@ -27,11 +27,13 @@ else
 <h2>2. Purchase History</h2>
 @if (Model.PurchaseHistory.Any())
 {
-    foreach (var purchase in Model.PurchaseHistory)
+    foreach (var ep in Model.PurchaseHistory)
     {
         <div>
-            <strong>@purchase.EventPurchases.First().Event.Title</strong>
-            <p>Rating: @purchase.Rating / 5</p>
+            <strong>@ep.Event.Title</strong>
+            <p>Quantity: @ep.Quantity</p>
+            <!-- If you had a Rating property, show it -->
+            @* <p>Rating: @ep.Rating / 5</p> *@
         </div>
     }
 }

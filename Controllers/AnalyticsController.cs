@@ -4,89 +4,123 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VirtualEventTicketingSystem.Models;
 
-[Authorize(Roles = "Organizer,Admin")]
-public class AnalyticsController : Controller
+namespace VirtualEventTicketingSystem.Controllers
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<AppUser> _userManager;
-
-    public AnalyticsController(ApplicationDbContext context, UserManager<AppUser> userManager)
+    [Authorize(Roles = "Organizer,Admin")]
+    public class AnalyticsController : Controller
     {
-        _context = context;
-        _userManager = userManager;
-    }
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<AppUser> _userManager;
 
-    // GET: /Events/MyAnalytics
-    public IActionResult MyAnalytics()
-    {
-        return View();
-    }
+        public AnalyticsController(ApplicationDbContext context, UserManager<AppUser> userManager)
+        {
+            _context = context;
+            _userManager = userManager;
+        }
 
-    // JSON endpoint for ticket sales by category
-    [HttpGet]
-    public async Task<IActionResult> GetTicketSalesByCategory()
-    {
-        var user = await _userManager.GetUserAsync(User);
+        // GET: /Analytics/MyAnalytics
+        public IActionResult MyAnalytics()
+        {
+            return View();
+        }
 
-        var sales = await _context.Categories
-            .Select(c => new 
+        // JSON endpoint for ticket sales by category
+        [HttpGet]
+        public async Task<IActionResult> GetTicketSalesByCategory()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+            bool isOrganizer = roles.Contains("Organizer");
+
+            var categories = await _context.Categories.ToListAsync();
+            var sales = new List<object>();
+
+            foreach (var c in categories)
             {
-                Category = c.Name,
-                TicketsSold = _context.EventPurchases
-                                .Include(ep => ep.Event)
-                                .Where(ep => ep.Event.CategoryId == c.Id && 
-                                             (user.IsOrganizer ? ep.Event.OrganizerId == user.Id : true))
-                                .Count()
-            })
-            .ToListAsync();
+                var ticketsQuery = _context.EventPurchases
+                    .Include(ep => ep.Event)
+                    .Where(ep => ep.Event.CategoryId == c.Id);
 
-        return Json(sales);
-    }
+                if (isOrganizer)
+                {
+                    ticketsQuery = ticketsQuery.Where(ep => ep.Event.OrganizerId == user.Id);
+                }
 
-    // JSON endpoint for revenue per month
-    [HttpGet]
-    public async Task<IActionResult> GetRevenuePerMonth()
-    {
-        var user = await _userManager.GetUserAsync(User);
+                var ticketsSold = await ticketsQuery.CountAsync();
 
-        var revenue = await _context.EventPurchases
-            .Include(ep => ep.Event)
-            .Include(ep => ep.Purchase)
-            .Where(ep => user.IsOrganizer ? ep.Event.OrganizerId == user.Id : true)
-            .GroupBy(ep => new { ep.Purchase.PurchaseDate.Year, ep.Purchase.PurchaseDate.Month })
-            .Select(g => new
+                sales.Add(new
+                {
+                    Category = c.Name,
+                    TicketsSold = ticketsSold
+                });
+            }
+
+            return Json(sales);
+        }
+
+        // JSON endpoint for revenue per month
+        [HttpGet]
+        public async Task<IActionResult> GetRevenuePerMonth()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+            bool isOrganizer = roles.Contains("Organizer");
+
+            var query = _context.EventPurchases
+                .Include(ep => ep.Event)
+                .Include(ep => ep.Purchase)
+                .AsQueryable();
+
+            if (isOrganizer)
             {
-                Year = g.Key.Year,
-                Month = g.Key.Month,
-                Revenue = g.Sum(ep => ep.Purchase.Amount)
-            })
-            .OrderBy(g => g.Year).ThenBy(g => g.Month)
-            .ToListAsync();
+                query = query.Where(ep => ep.Event.OrganizerId == user.Id);
+            }
 
-        return Json(revenue);
-    }
+            var revenue = await query
+                .GroupBy(ep => new { ep.Purchase.PurchaseDate.Year, ep.Purchase.PurchaseDate.Month })
+                .Select(g => new
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Revenue = g.Sum(ep => ep.Purchase.Amount)
+                })
+                .OrderBy(g => g.Year)
+                .ThenBy(g => g.Month)
+                .ToListAsync();
 
-    // JSON endpoint for Top 5 Best-Selling Events
-    [HttpGet]
-    public async Task<IActionResult> GetTopEvents()
-    {
-        var user = await _userManager.GetUserAsync(User);
+            return Json(revenue);
+        }
 
-        var topEvents = await _context.Events
-            .Where(e => user.IsOrganizer ? e.OrganizerId == user.Id : true)
-            .Select(e => new
+        // JSON endpoint for Top 5 Best-Selling Events
+        [HttpGet]
+        public async Task<IActionResult> GetTopEvents()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+            bool isOrganizer = roles.Contains("Organizer");
+
+            var eventsQuery = _context.Events.AsQueryable();
+
+            if (isOrganizer)
             {
-                e.Id,
-                e.Title,
-                TicketsSold = _context.EventPurchases.Count(ep => ep.EventId == e.Id),
-                Revenue = _context.EventPurchases
-                            .Where(ep => ep.EventId == e.Id)
-                            .Sum(ep => (decimal?)ep.Purchase.Amount) ?? 0
-            })
-            .OrderByDescending(e => e.TicketsSold)
-            .Take(5)
-            .ToListAsync();
+                eventsQuery = eventsQuery.Where(e => e.OrganizerId == user.Id);
+            }
 
-        return Json(topEvents);
+            var topEvents = await eventsQuery
+                .Select(e => new
+                {
+                    e.Id,
+                    e.Title,
+                    TicketsSold = _context.EventPurchases.Count(ep => ep.EventId == e.Id),
+                    Revenue = _context.EventPurchases
+                                .Where(ep => ep.EventId == e.Id)
+                                .Sum(ep => (decimal?)ep.Purchase.Amount) ?? 0
+                })
+                .OrderByDescending(e => e.TicketsSold)
+                .Take(5)
+                .ToListAsync();
+
+            return Json(topEvents);
+        }
     }
 }

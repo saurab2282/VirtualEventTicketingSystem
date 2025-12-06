@@ -11,9 +11,11 @@ namespace VirtualEventTicketingSystem.Models
         public Event Event { get; set; }
 
         public int PurchaseId { get; set; }
-        public Purchase Purchase { get; set; }
+        public Purchase Purchase    { get; set; }
 
         [Range(1, 10)]
         public int Quantity { get; set; }
+
+       
     }
 }

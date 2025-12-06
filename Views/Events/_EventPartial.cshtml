@@ -1,0 +1,37 @@
+@model IEnumerable<Event>
+
+@if (Model == null || !Model.Any())
+{
+    <p class="empty-message">No events found.</p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col">
+                <div class="card h-100 p-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">@item.Title</h5>
+                        <p class="card-text mb-1"><b>Date & Time:</b> @item.DateTime.ToString("f")</p>
+                        <p class="card-text mb-1"><b>Category:</b> @item.Category?.Name</p>
+                        <p class="card-text mb-1"><b>Price:</b> $@item.TicketPrice</p>
+                        <p class="card-text"><b>Available Tickets:</b> @item.AvailableTickets</p>
+                    </div>
+
+                    <div class="card-footer bg-transparent border-0 text-center">
+
+                        <!-- ADD TO CART BUTTON GOES HERE -->
+                        <button class="btn btn-primary btn-sm me-2 addToCartBtn"
+                                data-id="@item.Id">
+                            Add to Cart
+                        </button>
+
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-success btn-sm me-2">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm">Delete</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VirtualEventTicketingSystem.Models;
+using VirtualEventTicketingSystem.ViewModels;
 using QRCoder; // For QR codes
 using System.Drawing;
 using System.IO;
@@ -22,7 +23,7 @@ public class DashboardController : Controller
     public async Task<IActionResult> Index()
     {
         var user = await _userManager.GetUserAsync(User);
-        if (user == null) return Challenge();
+        var roles = await _userManager.GetRolesAsync(user);
 
         var myTickets = await _context.EventPurchases
             .Include(ep => ep.Event)
@@ -30,41 +31,27 @@ public class DashboardController : Controller
             .Where(ep => ep.Purchase.UserId == user.Id)
             .ToListAsync();
 
-        var purchaseHistory = await _context.Purchases
-            .Include(p => p.EventPurchases)
-                .ThenInclude(ep => ep.Event)
-            .Where(p => p.UserId == user.Id && p.EventPurchases.Any())
+        var purchaseHistory = await _context.EventPurchases
+            .Include(ep => ep.Event)
+            .Include(ep => ep.Purchase)
+            .Where(ep => ep.Purchase.UserId == user.Id)
             .ToListAsync();
 
-        var myEvents = new List<Event>();
-        if (user.IsOrganizer)
-        {
-            myEvents = await _context.Events
-                .Where(e => e.OrganizerId == user.Id)
-                .Select(e => new Event
-                {
-                    Id = e.Id,
-                    Title = e.Title,
-                    EventDate = e.EventDate,
-                    // TotalRevenue calculated dynamically
-                    TotalRevenue = _context.EventPurchases
-                        .Where(ep => ep.EventId == e.Id)
-                        .Sum(ep => (decimal?)ep.Purchase.Amount) ?? 0
-                }).ToListAsync();
-        }
+        var myEvents = roles.Contains("Organizer")
+            ? await _context.Events.Where(e => e.OrganizerId == user.Id).ToListAsync()
+            : new List<Event>();
 
-        var profile = user;
         var model = new DashboardViewModel
         {
+            Profile = user,                    // ⚠ Assign the user here
+            IsOrganizer = roles.Contains("Organizer"),
             MyTickets = myTickets,
             PurchaseHistory = purchaseHistory,
-            MyEvents = myEvents,
-            Profile = user
+            MyEvents = myEvents
         };
 
         return View(model);
     }
-
     [HttpPost]
     public async Task<IActionResult> UpdateProfile(IFormFile ProfilePicture, string FullName, string PhoneNumber)
     {
@@ -91,7 +78,7 @@ public class DashboardController : Controller
         return RedirectToAction("Index");
     }
 
-    // Optional: generate QR code image for a ticket
+    // Generate QR code for ticket
     public IActionResult GenerateQr(string code)
     {
         using var qrGenerator = new QRCodeGenerator();
@@ -104,7 +91,7 @@ public class DashboardController : Controller
         return File(stream.ToArray(), "image/png");
     }
 
-    // Optional: download ticket PDF (simplest approach)
+    // Download ticket as PDF (basic version)
     public async Task<IActionResult> DownloadPdf(int eventPurchaseId)
     {
         var ep = await _context.EventPurchases
@@ -114,7 +101,7 @@ public class DashboardController : Controller
 
         if (ep == null) return NotFound();
 
-        // Here you can generate a real PDF using a library like iTextSharp, QuestPDF, etc.
+        // Replace with a proper PDF generation library if needed
         var pdfBytes = System.Text.Encoding.UTF8.GetBytes($"Ticket for {ep.Event.Title}");
         return File(pdfBytes, "application/pdf", $"Ticket_{ep.PurchaseId}.pdf");
     }

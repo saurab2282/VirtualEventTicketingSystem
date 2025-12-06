@@ -1,0 +1,173 @@
+@model VirtualEventTicketingSystem.Models.Cart
+@using Microsoft.AspNetCore.Authorization
+
+@{
+ViewData["Title"] = "Your Cart";
+}
+
+<h2>Your Cart</h2>
+
+@if (Model == null || !Model.Items.Any())
+{
+<div class="alert alert-info">Your cart is empty.</div>
+}
+else
+{
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Event</th>
+            <th>Price</th>
+            <th style="width:140px">Quantity</th>
+            <th>Line</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody id="cartBody">
+        @foreach (var item in Model.Items)
+        {
+        <tr data-eventid="@item.EventId">
+            <td>@item.Title
+                @if (item.AvailableTickets <= 7)
+                {
+                <div class="text-danger small">Only @item.AvailableTickets tickets left!</div>
+                }
+            </td>
+            <td>$@item.TicketPrice</td>
+            <td>
+                <div class="input-group">
+                    <button class="btn btn-outline-secondary btn-sm qty-decrease">-</button>
+                    <input type="number" class="form-control form-control-sm qty-input" min="1" value="@item.Quantity" style="max-width:70px" />
+                    <button class="btn btn-outline-secondary btn-sm qty-increase">+</button>
+                </div>
+            </td>
+            <td class="line-total">$@item.LineTotal</td>
+            <td>
+                <button class="btn btn-sm btn-danger remove-item">Remove</button>
+            </td>
+        </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-end align-items-center">
+    <div class="me-4">
+        <strong>Total: </strong> $<span id="cartTotal">@Model.TotalPrice</span>
+    </div>
+
+    <button id="checkoutBtn" class="btn btn-success">Checkout</button>
+</div>
+}
+
+<!-- Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+            <h4 class="modal-title mb-3">Purchase Confirmed 🎉</h4>
+            <p id="confirmationText">Thank you — your purchase is complete.</p>
+            <a id="viewPurchaseLink" class="btn btn-primary" href="#">View Purchase</a>
+            <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Close</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+    // Increase / decrease buttons
+    $(document).on('click', '.qty-increase', function () {
+        var row = $(this).closest('tr');
+        var input = row.find('.qty-input');
+        var newVal = parseInt(input.val()) + 1;
+        var eventId = row.data('eventid');
+        updateQuantity(eventId, newVal, row);
+    });
+
+    $(document).on('click', '.qty-decrease', function () {
+        var row = $(this).closest('tr');
+        var input = row.find('.qty-input');
+        var newVal = Math.max(1, parseInt(input.val()) - 1);
+        var eventId = row.data('eventid');
+        updateQuantity(eventId, newVal, row);
+    });
+
+    $(document).on('change', '.qty-input', function () {
+        var row = $(this).closest('tr');
+        var eventId = row.data('eventid');
+        var newVal = parseInt($(this).val());
+        updateQuantity(eventId, newVal, row);
+    });
+
+    // Remove item
+    $(document).on('click', '.remove-item', function () {
+        var row = $(this).closest('tr');
+        var eventId = row.data('eventid');
+        $.post('/Cart/RemoveItem', { eventId: eventId }, function (res) {
+            if (res.success) {
+                row.remove();
+                $("#cartCount").text(res.totalQuantity);
+                $("#cartTotal").text(res.totalPrice);
+                if (res.totalQuantity == 0) location.reload(); // show empty message
+            }
+        });
+    });
+
+    // Update quantity helper
+    function updateQuantity(eventId, qty, row) {
+        $.post('/Cart/UpdateQuantity', { eventId: eventId, quantity: qty }, function (res) {
+            if (res.success) {
+                row.find('.qty-input').val(qty);
+                row.find('.line-total').text('$' + res.lineTotal.toFixed(2));
+                $("#cartCount").text(res.totalQuantity);
+                $("#cartTotal").text(res.totalPrice.toFixed(2));
+
+                // low stock warning update
+                if (res.available <= 7) {
+                    if (row.find('.low-stock').length === 0) {
+                        row.find('td').first().append('<div class="text-danger small low-stock">Only ' + res.available + ' tickets left!</div>');
+                    } else {
+                        row.find('.low-stock').text('Only ' + res.available + ' tickets left!');
+                    }
+                } else {
+                    row.find('.low-stock').remove();
+                }
+            } else {
+                alert('Unable to update quantity: ' + (res.message || 'unknown error'));
+            }
+        });
+    }
+
+    // Checkout
+    $('#checkoutBtn').on('click', function () {
+        $.post('/Cart/Checkout', {}, function (res) {
+            if (res.success) {
+                // show modal
+                $('#confirmationModal').modal('show');
+
+                // confetti
+                confetti({
+                    particleCount: 200,
+                    spread: 120,
+                    origin: { y: 0.6 }
+                });
+
+                $('#confirmationText').text('Purchase #' + res.purchaseId + ' completed — thanks!');
+                $('#viewPurchaseLink').attr('href', '/Purchases/Details/' + res.purchaseId);
+
+                // update navbar cart
+                $('#cartCount').text(0);
+
+                // optionally clear cart UI
+                setTimeout(function () {
+                    location.href = '/Purchases/Details/' + res.purchaseId;
+                }, 1800);
+            } else {
+                alert('Checkout failed: ' + (res.message || 'unknown'));
+            }
+        });
+    });
+</script>
+}
