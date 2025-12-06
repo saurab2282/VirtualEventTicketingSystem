@@ -17,7 +17,7 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 // 2. Add Identity
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = true;   // ⭐ REQUIRED
+       // options.SignIn.RequireConfirmedAccount = true;   // ⭐ REQUIRED
         options.User.RequireUniqueEmail = true;
         options.Password.RequiredLength = 6;
     })
@@ -33,7 +33,6 @@ builder.Services.AddAuthorization(options =>
 });
 
 // 4. Add Seeder
-builder.Services.AddScoped<RoleSeeder>();
 // ❗ REQUIRED: Add memory cache FIRST
 builder.Services.AddDistributedMemoryCache();
 
@@ -117,7 +116,8 @@ using (var scope = app.Services.CreateScope())
         {
             UserName = adminEmail,
             Email = adminEmail,
-            FullName = "Administrator"
+            FullName = "Administrator",
+            EmailConfirmed = true
         };
 
         var result = await userManager.CreateAsync(adminUser, adminPassword);
@@ -138,7 +138,8 @@ using (var scope = app.Services.CreateScope())
         {
             UserName = organizerEmail,
             Email = organizerEmail,
-            FullName = "Organizer User"
+            FullName = "Organizer User",
+            EmailConfirmed = true
         };
 
         var result = await userManager.CreateAsync(organizerUser, organizerPassword);
@@ -172,17 +173,5 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-app.Run();
-// Seed Roles Method
-async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
-{
-    string[] roleNames = { "Organizer", "User" };
 
-    foreach (var roleName in roleNames)
-    {
-        if (!await roleManager.RoleExistsAsync(roleName))
-        {
-            await roleManager.CreateAsync(new IdentityRole(roleName));
-        }
-    }
-}
+app.Run();
